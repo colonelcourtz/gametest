@@ -1,0 +1,170 @@
+<!doctype html> 
+<html lang="en"> 
+<head> 
+	<meta charset="UTF-8" />
+	<title>Phaser - Making your first game, part 1</title>
+    <script src="/js/phaser.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/jquery.min.js"></script>
+
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+<div id='interface' style='margin:0px auto;width:800px;margin-top:50px'></div>
+<button id="room1">ROOM 1</button>
+  <button id="room2">ROOM 2</button>
+<script type="text/javascript">
+
+
+var game = new Phaser.Game(800, 600, Phaser.AUTO, 'interface', { preload: preload, create: create, update: update });
+
+function preload() {
+
+    game.load.tilemap('MyTilemap', '/assets/level1.json', null, Phaser.Tilemap.TILED_JSON);
+    game.load.image('tiles', '/assets/tilesheet.png');
+    game.load.spritesheet('dude', '/assets/dude.png', 32, 48);
+    game.load.spritesheet('player2', '/assets/player2.png', 27, 40);
+
+}
+
+var map;
+var layer;
+var player;
+var cursors;
+var socket = io();
+ var playerMap = {};
+
+function create() {
+
+     game.physics.startSystem(Phaser.Physics.ARCADE);
+    game.stage.backgroundColor = '#787878';
+    map = game.add.tilemap('MyTilemap');
+    map.addTilesetImage('tiles', 'tiles');
+    map.setCollisionBetween(1, 1200);
+    layer = map.createLayer('MyTerrain');
+    layer.resizeWorld();
+    cursors = game.input.keyboard.createCursorKeys();
+
+    $('#room1').click(function(){
+        startConnection("room1");
+    })
+    $('#room2').click(function(){
+        startConnection("room2");
+    })
+    function startConnection(room){
+       //Join a room on connection
+       socket.emit('room',room)
+       for(var i; i<map.layers.length; i++){
+        layer = map.createLayer(i);
+       }
+       socket.emit('newplayer');
+      //submit message to server -just a normal emit
+    };
+    socket.on('newplayer',function(data){
+        addNewPlayer(data.id)
+    })
+    socket.on('allplayers',function(data){
+        console.log(data);
+        for (var i =0; i< data.length; i++){
+            addNewPlayer(data[i].id,data[i].x,data[i].y)
+        }
+    })
+    socket.on('remove',function(id){
+        removePlayer(id);
+    })
+
+
+addNewPlayer = function(id,x,y){
+    console.log(id)
+    game.playerMap[id] = game.add.sprite(x,y,'dude')
+}
+removePlayer = function(id){
+    game.playerMap[id].destroy();
+    delete game.playerMap[id];
+}
+
+  
+   socket.on('movement', function(data){
+    console.log(data.id)
+    var player = game.playerMap[data.id];
+   // player.anchor.setTo(position[0],position[1])
+    player.x = data.x;
+    player.y = data.y;
+  });
+   
+
+    
+    player.anchor.set(0.5);
+    game.physics.arcade.enable(player);
+    player.body.bounce.y = 0;
+    player.body.gravity.y = 800;
+    player.body.collideWorldBounds = true;
+    
+
+   
+
+    //animations using the spritesheet created above
+    player.animations.add('left', [0, 1, 2, 3], 10, true)
+    player.animations.add('right', [5, 6, 7, 8], 10, true)
+    game.camera.follow(player);
+
+   
+}
+
+function update() {
+    touchingFloor =game.physics.arcade.collide(player, layer);
+    player.body.velocity.x = 0;
+
+   
+
+ if (cursors.left.isDown){
+        //  Move to the left
+        player.body.velocity.x = -150;
+        player.animations.play('left');
+        socket.emit('movement', {x:player.world.x,y:player.world.y});
+
+    }else if (cursors.right.isDown){
+        //  Move to the right
+        player.body.velocity.x = 150;
+        player.animations.play('right');
+        socket.emit('movement', {x:player.world.x,y:player.world.y});
+
+    }else{
+         //  Stand still
+        player.animations.stop();
+        player.frame = 4;
+    }
+    //  Allow the player to jump if they are touching the ground.
+    if (cursors.up.isDown && touchingFloor){
+        player.body.velocity.y = -300;
+        socket.emit('movement', {x:player.world.x,y:player.world.y});
+    }
+/*
+    if (cursors.left.isDown)
+    {
+        game.camera.x -= 8;
+    }
+    else if (cursors.right.isDown)
+    {
+        game.camera.x += 8;
+    }
+
+    if (cursors.up.isDown)
+    {
+        game.camera.y -= 8;
+    }
+    else if (cursors.down.isDown)
+    {
+        game.camera.y += 8;
+    }
+    */
+
+}
+</script>
+
+</body>
+</html>

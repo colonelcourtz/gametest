@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Socket.IO chat</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font: 13px Helvetica, Arial; }
+      form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+      #messages { list-style-type: none; margin: 0; padding: 0; }
+      #messages li { padding: 5px 10px; }
+      #messages li:nth-child(odd) { background: #eee; }
+    </style>
+  </head>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/jquery.min.js"></script>
+  <script>
+  $(function () {
+
+    $('#room1').click(function(){
+        startConnection("room1");
+    })
+    $('#room2').click(function(){
+        startConnection("room2");
+    })
+    function startConnection(room){
+      console.log("Start Connection")
+      //input
+      var socket = io();
+
+       //Join a room on connection
+       socket.emit('room',room)
+
+      //submit message to server -just a normal emit
+      $("#submit").click(function(){
+        console.log("submitting message")
+        console.log($('#m').val())
+
+        socket.emit('message', $('#m').val());
+        $('#m').val('');
+        return false;
+      });
+
+      //Receipt
+      socket.on('message', function(msg){
+        $('#messages').append($('<li>').text(msg));
+      });
+    };
+
+
+  });
+  </script>
+  <body>
+  <button id="room1">ROOM 1</button>
+  <button id="room2">ROOM 2</button>
+    <ul id="messages"></ul>
+    <form action="" onsubmit="return false;">
+      <input id="m" autocomplete="off" /><button id="submit">Send</button>
+    </form>
+  </body>
+</html>
