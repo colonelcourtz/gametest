@@ -31,13 +31,15 @@ server.listen(3000,function(){ // Listens to port 3000
 server.lastPlayderID = 0; // Keep track of the last id assigned to a new player
 io.on('connection',function(socket){
     console.log("player "+(server.lastPlayderID++)+" connected")
-    socket.on('newplayer',function(){
+    socket.on('newplayer',function(name){
         //creating a new player
         socket.player = {
             id: server.lastPlayderID++,
+            name: name,
             x: 0,
             y: 0,
         };
+        console.log(name)
 
         //send all players (including our new one) back to our current player
         socket.emit('allplayers',getAllPlayers());

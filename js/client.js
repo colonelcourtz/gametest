@@ -4,10 +4,10 @@
 
 var Client = {};
 Client.socket = io.connect();
-Client.askNewPlayer = function(){
+Client.askNewPlayer = function(name){
     console.log("REQUESTING NEW PLAYER");
     //create a new player request to the server
-    Client.socket.emit('newplayer');
+    Client.socket.emit('newplayer',name);
 };
 
 Client.triggerMovement = function(direction){
@@ -16,11 +16,11 @@ Client.triggerMovement = function(direction){
 
 Client.socket.on('allplayers',function(data){
     for(var i = 0; i < data.length; i++){
-      Game.addNewPlayer(data[i].id,data[i].x,data[i].y);
+      Game.addNewPlayer(data[i].id,data[i].x,data[i].y,data[i].name);
     }
 });
 Client.socket.on('newplayer',function(data){
-    Game.addNewPlayer(data.id,data.x,data.y)
+    Game.addNewPlayer(data.id,data.x,data.y,data.name)
 })
 Client.socket.on('thisPlayer',function(data){
     Game.setThisPlayer(data.id)

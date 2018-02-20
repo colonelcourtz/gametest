@@ -31,17 +31,18 @@ Game.create = function(){
     layer[1].resizeWorld();
 
     //Create new player - me
-    Client.askNewPlayer();
+    Client.askNewPlayer("courtney");
     
 };
 
 
-Game.addNewPlayer = function(id,x,y){
-    console.log("Adding new player "+id)
+Game.addNewPlayer = function(id,x,y,name){
+    console.log("Adding new player "+id+name)
     Game.playerMap[id] = game.add.sprite(x,y,'sprite');
     game.physics.arcade.enable(Game.playerMap[id]);
     Game.playerMap[id].body.gravity.y = 800;
     Game.playerMap[id].body.collideWorldBounds = true;
+
      
   };
   Game.setThisPlayer = function(id){
