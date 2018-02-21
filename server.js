@@ -14,7 +14,6 @@ require("jsdom/lib/old-api").env("", function(err, window) {
     $ = require("jquery")(window);
 });
 
- count = 0;
 
 app.use('/js', express.static(__dirname + '/js'));
 app.use('/assets', express.static(__dirname + '/assets'));
@@ -28,19 +27,17 @@ server.listen(3000,function(){ // Listens to port 3000
 });
 
 
-server.lastPlayderID = 0; // Keep track of the last id assigned to a new player
+server.lastPlayerID = 1; // Keep track of the last id assigned to a new player
 io.on('connection',function(socket){
-    console.log("player "+(server.lastPlayderID++)+" connected")
+    ;
     socket.on('newplayer',function(name){
         //creating a new player
         socket.player = {
-            id: server.lastPlayderID++,
+            id: server.lastPlayerID++,
             name: name,
             x: 0,
             y: 0,
         };
-        console.log(name)
-
         //send all players (including our new one) back to our current player
         socket.emit('allplayers',getAllPlayers());
         socket.emit('thisPlayer',socket.player)
@@ -49,8 +46,15 @@ io.on('connection',function(socket){
 
         socket.on('triggerMove',function(data){
             socket.player.direction = data.direction;
+            socket.player.x = data.position.x;
+            socket.player.y = data.position.y;
             io.sockets.emit('movePlayer',socket.player);
         });
+
+        //update all player positions periodically - but not for our own player (coz we know where that is!)
+        setInterval(function(){
+            socket.broadcast.emit('updatePositions',getAllPlayers()); 
+        }, 1000);
 
         socket.on('disconnect',function(){
             io.emit('remove',socket.player.id);
@@ -66,7 +70,6 @@ function getAllPlayers(){
          var player = io.sockets.connected[index].player;
         if(player) players.push(player);
     })
-    console.log(players)
     return players;
 }
 

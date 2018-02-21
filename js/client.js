@@ -10,8 +10,8 @@ Client.askNewPlayer = function(name){
     Client.socket.emit('newplayer',name);
 };
 
-Client.triggerMovement = function(direction){
-   Client.socket.emit('triggerMove', {direction:direction});
+Client.triggerMovement = function(direction,position){
+   Client.socket.emit('triggerMove', {direction:direction,position:position});
 };
 
 Client.socket.on('allplayers',function(data){
@@ -29,6 +29,9 @@ Client.socket.on('movePlayer',function(data){
 	Game.movePlayer(data.id,data.direction)
 })
 
+Client.socket.on('updatePositions',function(data){
+    Game.updatePositions(data);
+})
 
 Client.socket.on('remove',function(id){
     Game.removePlayer(id);
