@@ -4,6 +4,7 @@ var map;
 var layer = [];
 var touchingFloor = false;
 var MYID;
+var updateSpeed = 1000;
 Game.init = function(){
     game.stage.disableVisibilityChange = true;
 };
@@ -72,10 +73,12 @@ Game.setThisPlayer = function(id){
 //////////////////////////////////////////////////
 Game.update = function(){
     //allow players to collide with each other
-    game.physics.arcade.collide(group)
+    
 	touchingFloor = [];
+    touchingPlayer = [];
 	$.each(Game.playerMap,function(index, thisPlayer){
 		touchingFloor[index] = game.physics.arcade.collide(thisPlayer,layer[1]);
+        touchingPlayer[index] =game.physics.arcade.collide(group)
          if (cursors.left.isDown){
                Client.sendMovement("left")
                Game.updatePlayerMov(MYID,"left")
@@ -86,11 +89,14 @@ Game.update = function(){
             Client.sendMovement("stop")
             Game.updatePlayerMov(MYID,"stop")
         }
-        if (cursors.up.isDown && touchingFloor[index]){
+       
+        
+        if (cursors.up.isDown ){
             Client.sendMovement("jump")
             Game.updatePlayerMov(MYID,"jump")
         }  
 	})   
+    Game.updateServerPos();
 }
 
 //////////////////////////////////////////////////
@@ -99,8 +105,8 @@ Game.update = function(){
 ////                                          ////
 //////////////////////////////////////////////////
 setInterval(function(){
-    Game.updateServerPos();
-},200);
+    
+},updateSpeed);
 //function which sends our current position up to the server to be broadcast to all other players
 Game.updateServerPos = function(){
     if(MYID){
@@ -111,8 +117,13 @@ Game.updateServerPos = function(){
 Game.updatePlayerPos = function(id, x, y){
     if(typeof Game.playerMap!= "undefined" && typeof Game.playerMap[id] !== "undefined"){
         Game.playerMap[id].x = x;
-        //game.add.tween(Game.playerMap[id]).to( { x: Game.playerMap[id].x }, 20, true);
         Game.playerMap[id].y = y;
+    }
+}
+Game.standing = function(id){
+    player = Game.playerMap[id];
+    if((touchingFloor[id] || touchingPlayer[id]) && (player.body.blocked.down || player.body.touching.down)){
+        return true;
     }
 }
 
@@ -123,8 +134,8 @@ Game.updatePlayerMov = function(id,direction){
             switch(direction){
                 case "left": player.body.velocity.x = -150;break;
                 case "right": player.body.velocity.x = +150;break;
-                case "jump": 
-                    if(touchingFloor[id]){
+                case "jump":
+                    if(Game.standing(id)){
                         player.body.velocity.y = -300;
                     }
                 break;
