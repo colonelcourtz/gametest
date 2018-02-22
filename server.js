@@ -45,7 +45,6 @@ io.on('connection',function(socket){
         socket.broadcast.emit('newplayer',socket.player);
 
         socket.on('triggerMove',function(data){
-
             socket.player.direction = data.direction;
             if(data.position){
                 socket.player.x = data.position.x;
@@ -53,19 +52,6 @@ io.on('connection',function(socket){
             }
             socket.broadcast.emit('movePlayer',socket.player);
         });
-
-        //update all player positions periodically - but not for our own player (coz we know where that is!)
-        /*
-        setInterval(function(){
-            io.sockets.emit('requestCurrentPos')
-        }, 5000);
-
-        socket.on('updateServerPosition',function(player){
-            socket.broadcast.emit('updatePlayerPositions',player);
-        })
-        */
-
-
         socket.on('disconnect',function(){
             io.emit('remove',socket.player.id);
             server.lastPlayderID--;

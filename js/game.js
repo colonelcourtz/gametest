@@ -77,22 +77,9 @@ Game.movePlayer = function(id,direction){
         }
     }    
 };
-//Update positions of each player when triggered by server
-/*
-Game.updatePositions = function(id, x, y){
-    if(typeof Game.playerMap[id] != "undefined"){
-        console.log("updating "+id+"with"+x+","+y)
-        Game.playerMap[id].x = x;
-        Game.playerMap[id].y = y;
-    }
-}
-Game.requestCurrentPos = function(){
-    Client.updatePositions(Game.playerMap);
-}
-*/
 
 Game.update = function(){
-    game.physics.arcade.collide(thisPlayer,group)
+    game.physics.arcade.collide(group)
 	touchingFloor = [];
     touchingPlayer = [];
 	$.each(Game.playerMap,function(index, thisPlayer){
