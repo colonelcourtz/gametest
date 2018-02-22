@@ -15,6 +15,11 @@ Game.preload = function() {
     
 };
 
+//////////////////////////////////////////////////
+////                                          ////
+////           CREATING OUR WORLD             ////
+////                                          ////
+//////////////////////////////////////////////////
 Game.create = function(){
 	game.physics.startSystem(Phaser.Physics.ARCADE);
 	cursors = game.input.keyboard.createCursorKeys();
@@ -23,26 +28,26 @@ Game.create = function(){
     map = game.add.tilemap('map');
     map.addTilesetImage('tiles', 'tiles');
     map.setCollisionBetween(0, 1200);
-
     //player physics group
     group = game.add.physicsGroup();
    	
     for(var i = 0; i < map.layers.length; i++) {
         layer[0] = map.createLayer(i);
     }
-    
     layer[1] = map.createLayer('MyTerrain');
     layer[1].resizeWorld();
-
     //Create new player - me
     Client.askNewPlayer("courtney");
-
-    
 };
 
+//////////////////////////////////////////////////
+////                                          ////
+////           CREATING NEW PLAYERS           ////
+////                                          ////
+//////////////////////////////////////////////////
 
+//generic function for creating a player on the map (both us and all other players)
 Game.addNewPlayer = function(id,x,y,name){
-    
     Game.playerMap[id] = game.add.sprite(x,y,'sprite',id);
     game.physics.arcade.enable(Game.playerMap[id]);
     Game.playerMap[id].body.gravity.y = 800;
@@ -51,6 +56,8 @@ Game.addNewPlayer = function(id,x,y,name){
     //add player to physics group
     group.add(Game.playerMap[id]);
 };
+
+//Set up any special rules for our own player
 Game.setThisPlayer = function(id){
     game.camera.follow(Game.playerMap[id]);
     console.log("I AM PLAYER "+id)
@@ -58,26 +65,11 @@ Game.setThisPlayer = function(id){
     Game.updateServerPos();
 }
 
-Game.movePlayer = function(id,direction){  
-    if(Game.playerMap){
-      var player = Game.playerMap[id];
-      if(player){
-            switch(direction){
-                case "left": player.body.velocity.x = -150;break;
-                case "right": player.body.velocity.x = +150;break;
-                case "jump": 
-                if(touchingFloor[id]){
-                    player.body.velocity.y = -300;
-                }
-                break;
-                case "stop": player.body.velocity.x = 0;break;
-                default:player.body.velocity.x = 0;break;
-            }
-        
-        }
-    }    
-};
-
+//////////////////////////////////////////////////
+////                                          ////
+////           OUR UPDATE FUNCTION            ////
+////                                          ////
+//////////////////////////////////////////////////
 Game.update = function(){
     //allow players to collide with each other
     game.physics.arcade.collide(group)
@@ -85,25 +77,30 @@ Game.update = function(){
 	$.each(Game.playerMap,function(index, thisPlayer){
 		touchingFloor[index] = game.physics.arcade.collide(thisPlayer,layer[1]);
          if (cursors.left.isDown){
-               Client.triggerMovement("left")
-               Game.movePlayer(MYID,"left")
+               Client.sendMovement("left")
+               Game.updatePlayerMov(MYID,"left")
         }else if (cursors.right.isDown){
-               Client.triggerMovement("right")
-               Game.movePlayer(MYID,"right")
+               Client.sendMovement("right")
+               Game.updatePlayerMov(MYID,"right")
         }else{
-            Client.triggerMovement("stop")
-            Game.movePlayer(MYID,"stop")
+            Client.sendMovement("stop")
+            Game.updatePlayerMov(MYID,"stop")
         }
         if (cursors.up.isDown && touchingFloor[index]){
-            Client.triggerMovement("jump")
-            Game.movePlayer(MYID,"jump")
+            Client.sendMovement("jump")
+            Game.updatePlayerMov(MYID,"jump")
         }  
 	})   
 }
+
+//////////////////////////////////////////////////
+////                                          ////
+////        HANDLE UPDATING POSITIONS         ////
+////                                          ////
+//////////////////////////////////////////////////
 setInterval(function(){
     Game.updateServerPos();
 },200);
-
 //function which sends our current position up to the server to be broadcast to all other players
 Game.updateServerPos = function(){
     if(MYID){
@@ -114,10 +111,35 @@ Game.updateServerPos = function(){
 Game.updatePlayerPos = function(id, x, y){
     if(typeof Game.playerMap!= "undefined" && typeof Game.playerMap[id] !== "undefined"){
         Game.playerMap[id].x = x;
+        //game.add.tween(Game.playerMap[id]).to( { x: Game.playerMap[id].x }, 20, true);
         Game.playerMap[id].y = y;
     }
 }
 
+Game.updatePlayerMov = function(id,direction){  
+    if(Game.playerMap){
+        var player = Game.playerMap[id];
+        if(player){
+            switch(direction){
+                case "left": player.body.velocity.x = -150;break;
+                case "right": player.body.velocity.x = +150;break;
+                case "jump": 
+                    if(touchingFloor[id]){
+                        player.body.velocity.y = -300;
+                    }
+                break;
+                case "stop": player.body.velocity.x = 0;break;
+                default:player.body.velocity.x = 0;break;
+            }
+        }
+    }    
+};
+
+//////////////////////////////////////////////////
+////                                          ////
+////              PLAYER DISCONNECTION         ////
+////                                          ////
+//////////////////////////////////////////////////
 Game.removePlayer = function(id){
     Game.playerMap[id].destroy();
     delete Game.playerMap[id];

@@ -14,8 +14,8 @@ Client.updateServerPos = function(position){
     Client.socket.emit('updateServerPos',position)
 }
 
-Client.triggerMovement = function(direction){
-   Client.socket.emit('triggerMove', direction);
+Client.sendMovement = function(direction){
+   Client.socket.emit('sendMovementToServer', direction);
 };
 
 Client.socket.on('updatePlayerPos',function(data){
@@ -33,8 +33,8 @@ Client.socket.on('newplayer',function(data){
 Client.socket.on('thisPlayer',function(data){
     Game.setThisPlayer(data.id)
 })
-Client.socket.on('movePlayer',function(data){
-    Game.movePlayer(data.id,data.direction)
+Client.socket.on('updatePlayerMov',function(data){
+    Game.updatePlayerMov(data.id,data.direction)
 })
 
 Client.socket.on('remove',function(id){

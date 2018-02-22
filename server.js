@@ -50,9 +50,9 @@ io.on('connection',function(socket){
         	socket.broadcast.emit('updatePlayerPos',socket.player)
         })
 
-        socket.on('triggerMove',function(direction){
+        socket.on('sendMovementToServer',function(direction){
             socket.player.direction = direction;
-            socket.broadcast.emit('movePlayer',socket.player);
+            socket.broadcast.emit('updatePlayerMov',socket.player);
         });
         
         socket.on('disconnect',function(){
