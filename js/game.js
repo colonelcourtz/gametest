@@ -49,7 +49,7 @@ Game.addNewPlayer = function(id,x,y,name){
     Game.playerMap[id].body.collideWorldBounds = true;
     console.log("creating player "+id)
     //add player to physics group
-    //group.add(Game.playerMap[id]);
+    group.add(Game.playerMap[id]);
   };
   Game.setThisPlayer = function(id){
      game.camera.follow(Game.playerMap[id]);
