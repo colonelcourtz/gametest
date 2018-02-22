@@ -13,6 +13,11 @@ Client.askNewPlayer = function(name){
 Client.triggerMovement = function(direction,position){
    Client.socket.emit('triggerMove', {direction:direction,position:position});
 };
+Client.updatePositions = function(players){
+    $.each(players,function(index,player){
+        Client.socket.emit('updateServerPosition', player)
+    });
+}
 
 Client.socket.on('allplayers',function(data){
     for(var i = 0; i < data.length; i++){
@@ -28,9 +33,11 @@ Client.socket.on('thisPlayer',function(data){
 Client.socket.on('movePlayer',function(data){
 	Game.movePlayer(data.id,data.direction)
 })
-
-Client.socket.on('updatePositions',function(data){
-    Game.updatePositions(data);
+Client.socket.on('requestCurrentPos',function(){
+    Game.requestCurrentPos();
+})
+Client.socket.on('updatePlayerPositions',function(player){
+        Game.updatePositions(player.id, player.x, player.y);
 })
 
 Client.socket.on('remove',function(id){

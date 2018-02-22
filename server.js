@@ -29,7 +29,7 @@ server.listen(3000,function(){ // Listens to port 3000
 
 server.lastPlayerID = 1; // Keep track of the last id assigned to a new player
 io.on('connection',function(socket){
-    ;
+   
     socket.on('newplayer',function(name){
         //creating a new player
         socket.player = {
@@ -45,16 +45,24 @@ io.on('connection',function(socket){
         socket.broadcast.emit('newplayer',socket.player);
 
         socket.on('triggerMove',function(data){
+
             socket.player.direction = data.direction;
-            socket.player.x = data.position.x;
-            socket.player.y = data.position.y;
-            io.sockets.emit('movePlayer',socket.player);
+            if(data.position){
+                socket.player.x = data.position.x;
+                socket.player.y = data.position.y;
+            }
+            socket.broadcast.emit('movePlayer',socket.player);
         });
 
         //update all player positions periodically - but not for our own player (coz we know where that is!)
         setInterval(function(){
-            socket.broadcast.emit('updatePositions',getAllPlayers()); 
-        }, 1000);
+            io.sockets.emit('requestCurrentPos')
+        }, 5000);
+
+        socket.on('updateServerPosition',function(player){
+            socket.broadcast.emit('updatePlayerPositions',player);
+        })
+
 
         socket.on('disconnect',function(){
             io.emit('remove',socket.player.id);
@@ -64,12 +72,16 @@ io.on('connection',function(socket){
     });
 });
 
-function getAllPlayers(){
-    var players = [];
-    $.each(io.sockets.connected,function(index){
-         var player = io.sockets.connected[index].player;
-        if(player) players.push(player);
-    })
-    return players;
-}
 
+ function getAllPlayers(){
+
+            var players = [];
+            $.each(io.sockets.connected,function(index,socket){
+                
+                    var player = io.sockets.connected[index].player;
+                    
+                    if(player) players.push(player);
+                
+            })
+            return players;
+        }
