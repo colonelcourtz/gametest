@@ -3,20 +3,27 @@
 <head> 
 	<meta charset="UTF-8" />
 	<title>GAME</title>
+
     <script src="/js/phaser.js"></script>
+    <script src="node_modules/@orange-games/phaser-input/build/phaser-input.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script src="/js/jquery.min.js"></script>
     <script src="/js/game.js"></script>
     <script src="/js/client.js"></script>
+
     
 </head>
 <body>
+<button id="button">BUTTON</button>
 <div id='game' style='margin:0px auto;width:800px;margin-top:50px'></div>
 <script>
-//noinspection JSCheckFunctionSignatures,JSCheckFunctionSignatures,JSCheckFunctionSignatures
-var game = new Phaser.Game(24*32, 17*32, Phaser.AUTO, document.getElementById('game'));
-game.state.add('Game',Game);
-game.state.start('Game');
+
+	//noinspection JSCheckFunctionSignatures,JSCheckFunctionSignatures,JSCheckFunctionSignatures
+	var game = new Phaser.Game(24*32, 17*32, Phaser.AUTO, document.getElementById('game'));
+	game.state.add('Game',Game);
+	game.state.start('Game');
+
 </script>
+
 </body>
 </html>

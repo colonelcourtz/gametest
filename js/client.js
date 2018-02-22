@@ -4,6 +4,10 @@
 
 var Client = {};
 Client.socket = io.connect();
+
+Client.joinRoom = function(room){
+    Client.socket.emit('room',room)
+}
 Client.askNewPlayer = function(name){
     console.log("REQUESTING NEW PLAYER");
     //create a new player request to the server
@@ -17,7 +21,9 @@ Client.updateServerPos = function(position){
 Client.sendMovement = function(direction){
    Client.socket.emit('sendMovementToServer', direction);
 };
-
+Client.socket.on('playerRoom',function(room){
+    Game.startGame(room);
+})
 Client.socket.on('updatePlayerPos',function(data){
     Game.updatePlayerPos(data.id,data.x, data.y)
 })
