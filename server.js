@@ -27,16 +27,16 @@ server.listen(3000,function(){ // Listens to port 3000
 });
 
 
-server.lastPlayerID = 1; // Keep track of the last id assigned to a new player
+server.lastPlayerID = 0; // Keep track of the last id assigned to a new player
 io.on('connection',function(socket){
    
     socket.on('newplayer',function(name){
         //creating a new player
         socket.player = {
-            id: server.lastPlayerID++,
             name: name,
-            x: 0,
+            x: server.lastPlayerID*30,
             y: 0,
+            id: server.lastPlayerID++,
         };
         //send all players (including our new one) back to our current player
         socket.emit('allplayers',getAllPlayers());
@@ -44,17 +44,19 @@ io.on('connection',function(socket){
         //send new player to all players
         socket.broadcast.emit('newplayer',socket.player);
 
-        socket.on('triggerMove',function(data){
-            socket.player.direction = data.direction;
-            if(data.position){
-                socket.player.x = data.position.x;
-                socket.player.y = data.position.y;
-            }
+        socket.on('updateServerPos',function(position){
+        	socket.player.x = position.x;
+        	socket.player.y = position.y;
+        	socket.broadcast.emit('updatePlayerPos',socket.player)
+        })
+
+        socket.on('triggerMove',function(direction){
+            socket.player.direction = direction;
             socket.broadcast.emit('movePlayer',socket.player);
         });
+        
         socket.on('disconnect',function(){
             io.emit('remove',socket.player.id);
-            server.lastPlayderID--;
             console.log("player "+socket.player.id+" disconnected")
         });
     });

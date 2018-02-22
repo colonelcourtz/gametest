@@ -10,10 +10,17 @@ Client.askNewPlayer = function(name){
     Client.socket.emit('newplayer',name);
 };
 
-Client.triggerMovement = function(direction,position){
-   Client.socket.emit('triggerMove', {direction:direction,position:position});
+Client.updateServerPos = function(position){
+    Client.socket.emit('updateServerPos',position)
+}
+
+Client.triggerMovement = function(direction){
+   Client.socket.emit('triggerMove', direction);
 };
 
+Client.socket.on('updatePlayerPos',function(data){
+    Game.updatePlayerPos(data.id,data.x, data.y)
+})
 
 Client.socket.on('allplayers',function(data){
     for(var i = 0; i < data.length; i++){
@@ -27,8 +34,9 @@ Client.socket.on('thisPlayer',function(data){
     Game.setThisPlayer(data.id)
 })
 Client.socket.on('movePlayer',function(data){
-	Game.movePlayer(data.id,data.direction)
+    Game.movePlayer(data.id,data.direction)
 })
+
 Client.socket.on('remove',function(id){
     Game.removePlayer(id);
 });
