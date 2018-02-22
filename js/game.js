@@ -13,7 +13,7 @@
     };
 
     Game.preload = function() {
-        game.load.tilemap('map', '/assets/level1.json', null, Phaser.Tilemap.TILED_JSON);
+        game.load.tilemap('map', '/assets/level_01.json', null, Phaser.Tilemap.TILED_JSON);
         game.load.image('tiles', '/assets/tilesheet.png');
         game.load.spritesheet('sprite', '/assets/dude.png', 30, 30);
         game.load.spritesheet('button', '/assets/button.png', 100, 50);
@@ -56,12 +56,13 @@
             layer[0] = map.createLayer(i);
         }
         layer[1] = map.createLayer('MyTerrain');
+        layer[2] = map.createLayer('Background')
         layer[1].resizeWorld();
         //Create new player - me
 
         Client.askNewPlayer("courtney");
     }
-
+ 
     //////////////////////////////////////////////////
     ////                                          ////
     ////           CREATING NEW PLAYERS           ////
@@ -77,7 +78,9 @@
       
         //add player to physics group
         group.add(Game.playerMap[id]);
-        Game.playerMap[id].text = game.add.text(Game.playerMap[id].x,Game.playerMap[id].y,id);
+        //add player label and add as a child of the player
+        text = game.add.text(0,0,id);
+        Game.playerMap[id].addChild(text)
     };
 
     //Set up any special rules for our own player
@@ -98,10 +101,6 @@
     	touchingFloor = [];
         touchingPlayer = [];
     	$.each(Game.playerMap,function(index, thisPlayer){
-            //update text position
-            thisPlayer.text.x = Math.floor(thisPlayer.x+8);
-            thisPlayer.text.y = Math.floor(thisPlayer.y);
-
     		touchingFloor[index] = game.physics.arcade.collide(thisPlayer,layer[1]);
             touchingPlayer[index] =game.physics.arcade.collide(group)
              if (cursors.left.isDown){
@@ -163,7 +162,7 @@
                     case "right": player.body.velocity.x = +150;break;
                     case "jump":
                         if(Game.standing(id)){
-                            player.body.velocity.y = -300;
+                            player.body.velocity.y = -350;
                         }
                     break;
                     case "stop": player.body.velocity.x = 0;break;
