@@ -39,7 +39,10 @@
         console.log("YOU ARE IN ROOM:"+room)
         
         
-        game.add.text(30, 20, "In room: "+room)
+        var t = game.add.text(30, 20, "In room: "+room,{ font: "32px Arial", fill: "#000", align: "left" })
+        t.fixedToCamera = true;
+        t.cameraOffset.setTo(30, 20);
+
         Game.button.pendingDestroy = true;
         Game.input.pendingDestroy = true;
         game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -49,6 +52,11 @@
         map = game.add.tilemap('map');
         map.addTilesetImage('tiles', 'tiles');
         map.setCollisionBetween(0, 1200);
+        map.setTileIndexCallback(622, hitCoin, this);
+        
+        //  This will set the map location 2, 0 to call the function
+        //map.setTileLocationCallback(1, 3, 1, 1, hitCoin, this);
+
         //player physics group
         group = game.add.physicsGroup();
         
@@ -61,6 +69,14 @@
         //Create new player - me
 
         Client.askNewPlayer("courtney");
+    }
+    function hitCoin(sprite,tile){
+    tile.alpha = 0.2;
+
+    layer.dirty = true;
+    console.log(tile)
+
+    return false;
     }
  
     //////////////////////////////////////////////////
@@ -86,7 +102,9 @@
     //Set up any special rules for our own player
     Game.setThisPlayer = function(id){
         game.camera.follow(Game.playerMap[id]);
-        game.add.text(30, 50, "Player: "+id)
+        var t = game.add.text(30, 50, "Player: "+id,{ font: "32px Arial", fill: "#000", align: "left" })
+        t.fixedToCamera = true;
+        t.cameraOffset.setTo(30, 50);
         MYID = id;
         Game.updateServerPos();
     }
@@ -120,6 +138,7 @@
                 Game.updatePlayerMov(MYID,"jump")
             }  
     	})   
+        //SEND OUT POSITION TO SERVER
         Game.updateServerPos();
     }
 
@@ -128,9 +147,7 @@
     ////        HANDLE UPDATING POSITIONS         ////
     ////                                          ////
     //////////////////////////////////////////////////
-    setInterval(function(){
-        
-    },updateSpeed);
+
     //function which sends our current position up to the server to be broadcast to all other players
     Game.updateServerPos = function(){
         if(MYID){
