@@ -52,7 +52,7 @@
         map = game.add.tilemap('map');
         map.addTilesetImage('tiles', 'tiles');
         map.setCollisionBetween(0, 1200);
-        map.setTileIndexCallback(622, hitCoin, this);
+       
         
         //  This will set the map location 2, 0 to call the function
         //map.setTileLocationCallback(1, 3, 1, 1, hitCoin, this);
@@ -67,16 +67,16 @@
         layer[2] = map.createLayer('Background')
         layer[1].resizeWorld();
         //Create new player - me
-
         Client.askNewPlayer("courtney");
+         map.setTileIndexCallback(622, hitTerrain, this);
     }
-    function hitCoin(sprite,tile){
-    tile.alpha = 0.2;
+    function hitTerrain(sprite,tile){
+        tile.alpha = 0.2;
 
-    layer.dirty = true;
-    console.log(tile)
+        
+    
 
-    return false;
+        return true;
     }
  
     //////////////////////////////////////////////////
