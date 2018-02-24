@@ -13,12 +13,12 @@
 
     
 </head>
-<body style='background:#000'>
+<body style='background:#fff'>
 <div id='game' style='margin:0px auto;width:800px;margin-top:50px'></div>
 <script>
 
 	//noinspection JSCheckFunctionSignatures,JSCheckFunctionSignatures,JSCheckFunctionSignatures
-	var game = new Phaser.Game(24*32, 17*32, Phaser.AUTO, document.getElementById('game'));
+	var game = new Phaser.Game(24*32, 17*32, Phaser.CANVAS, document.getElementById('game'));
 	game.state.add('Game',Game);
 	game.state.start('Game');
 

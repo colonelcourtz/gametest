@@ -16,7 +16,7 @@
         game.load.tilemap('map', '/assets/level_01.json', null, Phaser.Tilemap.TILED_JSON);
         game.load.image('tiles', '/assets/tilesheet.png');
         game.load.spritesheet('sprite', '/assets/dude.png', 30, 30);
-        game.load.spritesheet('button', '/assets/button.png', 100, 50);
+        game.load.spritesheet('button', '/assets/button.png', 150, 30);
         
     };
 
@@ -26,8 +26,18 @@
     ////                                          ////
     //////////////////////////////////////////////////
     Game.create = function(){
-        Game.input = game.add.inputField(10, 90);
-        Game.button = game.add.button(10, 110, 'button', actionOnClick, this, 2, 1, );
+        var inputStyle= {
+    font: '18px Arial',
+    fill: '#212121',
+    fontWeight: 'bold',
+    width: 135,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: '#000',
+    borderRadius: 6
+}
+        Game.input = game.add.inputField(game.world.centerX - (inputStyle.width/2), game.world.centerY-50, inputStyle);
+        Game.button = game.add.button(game.world.centerX - (inputStyle.width/2), game.world.centerY, 'button', actionOnClick, this, 2, 1, );
         function actionOnClick(){
             allowStart = true;
             Client.joinRoom(Game.input.value);
@@ -52,7 +62,7 @@
         map = game.add.tilemap('map');
         map.addTilesetImage('tiles', 'tiles');
         map.setCollisionBetween(0, 1200);
-        map.setTileIndexCallback(622, hitCoin, this);
+        //map.setTileIndexCallback(622, hitCoin, this);
         
         //  This will set the map location 2, 0 to call the function
         //map.setTileLocationCallback(1, 3, 1, 1, hitCoin, this);
@@ -138,9 +148,13 @@
                 Game.updatePlayerMov(MYID,"jump")
             }  
     	})   
-        //SEND OUT POSITION TO SERVER
-        Game.updateServerPos();
+       
+        
     }
+    setInterval(function(){
+         //SEND OUR POSITION TO SERVER
+        Game.updateServerPos();
+    },1000)
 
     //////////////////////////////////////////////////
     ////                                          ////
