@@ -62,11 +62,9 @@
         map = game.add.tilemap('map');
         map.addTilesetImage('tiles', 'tiles');
         map.setCollisionBetween(0, 1200);
-<<<<<<< HEAD
+
         //map.setTileIndexCallback(622, hitCoin, this);
-=======
-       
->>>>>>> 0ae05660e04dac597503e16e0691a5c27ecb4023
+
         
         //  This will set the map location 2, 0 to call the function
         //map.setTileLocationCallback(1, 3, 1, 1, hitCoin, this);
