@@ -13,10 +13,10 @@
     };
 
     Game.preload = function() {
-        game.load.tilemap('map', '/assets/level_01.json', null, Phaser.Tilemap.TILED_JSON);
-        game.load.image('tiles', '/assets/tilesheet.png');
-        game.load.spritesheet('sprite', '/assets/dude.png', 30, 30);
-        game.load.spritesheet('button', '/assets/button.png', 150, 30);
+        game.load.tilemap('map', '/assets/levels/intro_level.json', null, Phaser.Tilemap.TILED_JSON);
+        game.load.image('tiles', '/assets/images/tilesheet.png');
+        game.load.spritesheet('sprite', '/assets/images/dude.png', 30, 30);
+        game.load.spritesheet('button', '/assets/images/button.png', 150, 30);
         
     };
 
@@ -43,7 +43,8 @@
             Client.joinRoom(Game.input.value);
             //Game.startGame();
         }
-    	
+		//SETS ROOM TO DEFAULT -- REMOVE LINE TO CHOOSE ROOM
+    	 Client.joinRoom("default");
     };
     Game.startGame = function(room){
         console.log("YOU ARE IN ROOM:"+room)
@@ -61,7 +62,7 @@
         Game.playerMap = {};
         map = game.add.tilemap('map');
         map.addTilesetImage('tiles', 'tiles');
-        map.setCollisionBetween(0, 1200);
+        map.setCollisionBetween(0, 12000);
 
         //map.setTileIndexCallback(622, hitCoin, this);
 
@@ -75,18 +76,21 @@
         for(var i = 0; i < map.layers.length; i++) {
             layer[0] = map.createLayer(i);
         }
+		map.setTileIndexCallback(622, hitTerrain, this);
+
         layer[1] = map.createLayer('MyTerrain');
+
         layer[2] = map.createLayer('Background')
         layer[1].resizeWorld();
         //Create new player - me
         Client.askNewPlayer("courtney");
-         map.setTileIndexCallback(622, hitTerrain, this);
+         
     }
     function hitTerrain(sprite,tile){
-        tile.alpha = 0.2;
-
-        
-    
+    	
+        tile.index ++;
+       console.log(tile)
+     layer[1].dirty = true;
 
         return true;
     }
@@ -127,6 +131,7 @@
     ////                                          ////
     //////////////////////////////////////////////////
     Game.update = function(){
+
         //allow players to collide with each other
     	touchingFloor = [];
         touchingPlayer = [];
@@ -156,7 +161,7 @@
     setInterval(function(){
          //SEND OUR POSITION TO SERVER
         Game.updateServerPos();
-    },1000)
+    },200)
 
     //////////////////////////////////////////////////
     ////                                          ////
