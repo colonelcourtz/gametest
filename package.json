@@ -4,7 +4,10 @@
   "description": "my first socket.io app",
   "dependencies": {
     "express": "^4.15.2",
-    "socket.io": "^2.0.4"
+    "jquery": "^3.3.1",
+    "jsdom": "^11.6.2",
+    "socket.io": "^2.0.4",
+    "socket.io-p2p-server": "^1.2.0"
   },
   "devDependencies": {
     "@orange-games/phaser-input": "^2.0.5"

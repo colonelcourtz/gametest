@@ -89,7 +89,7 @@
     function hitTerrain(sprite,tile){
     	
         tile.index ++;
-       console.log(tile)
+      // console.log(tile)
      layer[1].dirty = true;
 
         return true;

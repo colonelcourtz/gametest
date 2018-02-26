@@ -4,6 +4,26 @@
 
 var Client = {};
 Client.socket = io.connect();
+
+/////////////P2P TEST///////////////
+
+//HOW DO WE GET THE P2P constructor without browserify 
+P2P = window.P2P;
+console.log(P2P)
+var p2p = new P2P(Client.socket);
+
+ 
+p2p.on('ready', function(){
+  p2p.usePeerConnection = true;
+  p2p.emit('peer-obj', { peerId: peerId });
+})
+
+p2p.on('peer-msg', function(data){
+  console.log(data);
+});
+/////////////P2P TEST END///////////////
+
+
 //////////////////////////////////////////////////
 ////                                          ////
 ////          Add players to game             ////
