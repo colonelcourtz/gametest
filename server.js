@@ -3,8 +3,6 @@ var express = require('express');
 var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io').listen(server);
-var p2p = require('socket.io-p2p-server').Server;
-io.use(p2p);
 
 //include jQuery
 require("jsdom/lib/old-api").env("", function(err, window) {
@@ -36,7 +34,6 @@ io.on('connection',function(socket){
 	    console.log("ROOM:"+room)
 	    socket.join(room);
 	    socket.emit('playerRoom',room);
-
 	    socket.on('newplayer',function(name){
 	        //creating a new player
 	        socket.player = {

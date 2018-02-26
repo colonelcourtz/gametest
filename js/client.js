@@ -4,27 +4,6 @@
 
 var Client = {};
 Client.socket = io.connect();
-
-/////////////P2P TEST///////////////
-
-//WE get the P2P object using window.P2P then create new P2P
-P2P = window.P2P;
-console.log(P2P)
-var opts = {autoUpgrade: false, peerOpts: {numClients: 10}};
-var p2psocket = new P2P(Client.socket, opts)
-console.log(p2psocket);
- 
-p2psocket.on('ready', function(){
-  p2psocket.usePeerConnection = true;
-  p2psocket.emit('peer-obj', { peerId: peerId });
-})
-
-p2psocket.on('peer-msg', function(data){
-  console.log(data);
-});
-/////////////P2P TEST END///////////////
-
-
 //////////////////////////////////////////////////
 ////                                          ////
 ////          Add players to game             ////
