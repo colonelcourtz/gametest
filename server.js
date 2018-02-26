@@ -28,7 +28,7 @@ server.listen(3000,function(){ // Listens to port 3000
 });
 
 
-server.lastPlayerID = 0; // Keep track of the last id assigned to a new player
+server.lastPlayerID = 1; // Keep track of the last id assigned to a new player
 io.on('connection',function(socket){
    socket.on('room',function(room){
 	    console.log("ROOM:"+room)

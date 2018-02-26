@@ -4,6 +4,29 @@
 
 var Client = {};
 Client.socket = io.connect();
+
+////////////P2P TEST with simple-peer///////////
+
+
+
+p = new SimplePeer({ initiator: location.hash === '#1', trickle: false });
+
+console.log(p)
+p.on('connect', function () {
+  console.log('CONNECT')
+  p.send('whatever' + Math.random())
+})
+p.on('error', function (err) { console.log('error', err) })
+
+p.on('signal', function (data) {
+  console.log('SIGNAL', JSON.stringify(data))
+  document.querySelector('#outgoing').textContent = JSON.stringify(data)
+})
+
+  p.signal("hello")
+
+/////////////////p2p tst end///////////////
+
 //////////////////////////////////////////////////
 ////                                          ////
 ////          Add players to game             ////
