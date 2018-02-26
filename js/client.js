@@ -4,6 +4,11 @@
 
 var Client = {};
 Client.socket = io.connect();
+//////////////////////////////////////////////////
+////                                          ////
+////          Add players to game             ////
+////                                          ////
+//////////////////////////////////////////////////
 
 Client.joinRoom = function(room){
     Client.socket.emit('room',room)
@@ -14,18 +19,8 @@ Client.askNewPlayer = function(name){
     Client.socket.emit('newplayer',name);
 };
 
-Client.updateServerPos = function(position){
-    Client.socket.emit('updateServerPos',position)
-}
-
-Client.sendMovement = function(direction){
-   Client.socket.emit('sendMovementToServer', direction);
-};
 Client.socket.on('playerRoom',function(room){
     Game.startGame(room);
-})
-Client.socket.on('updatePlayerPos',function(data){
-    Game.updatePlayerPos(data.id,data.x, data.y)
 })
 
 Client.socket.on('allplayers',function(data){
@@ -39,9 +34,35 @@ Client.socket.on('newplayer',function(data){
 Client.socket.on('thisPlayer',function(data){
     Game.setThisPlayer(data.id)
 })
+
+
+//////////////////////////////////////////////////
+////                                          ////
+////        Update Player Posisitons          ////
+////                                          ////
+//////////////////////////////////////////////////
+Client.updateServerPos = function(position){
+    Client.socket.emit('updateServerPos',position)
+}
+Client.sendMovement = function(direction){
+   Client.socket.emit('sendMovementToServer', direction);
+};
+
+Client.socket.on('updatePlayerPos',function(data){
+    Game.updatePlayerPos(data.id,data.x, data.y)
+})
 Client.socket.on('updatePlayerMov',function(data){
     Game.updatePlayerMov(data.id,data.direction)
 })
+
+
+//////////////////////////////////////////////////
+////                                          ////
+////               DISCONNECT                 ////
+////                                          ////
+//////////////////////////////////////////////////
+
+
 
 Client.socket.on('remove',function(id){
     Game.removePlayer(id);
