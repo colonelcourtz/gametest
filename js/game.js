@@ -122,7 +122,7 @@
         t.fixedToCamera = true;
         t.cameraOffset.setTo(30, 50);
         MYID = id;
-        Game.updateServerPos();
+        Game.sendPositionPeers();
     }
 
     //////////////////////////////////////////////////
@@ -159,8 +159,8 @@
         
     }
     setInterval(function(){
-         //SEND OUR POSITION TO SERVER
-        Game.updateServerPos();
+         //Send our position to peers
+        Game.sendPositionPeers();
     },200)
 
     //////////////////////////////////////////////////
@@ -170,20 +170,23 @@
     //////////////////////////////////////////////////
 
     //function which sends our current position up to the server to be broadcast to all other players
-    Game.updateServerPos = function(){
+    Game.sendPositionPeers = function(){
         if(MYID){
             if(typeof Game.playerMap[MYID] !== "undefined"){
                 var position = {x:Game.playerMap[MYID].x,y:Game.playerMap[MYID].y};
-                Client.updateServerPos(position);
+                Client.sendPositionPeers(position);
             }
         }
     }
+    //updates other players positions on screen based on what has been sent to us
     Game.updatePlayerPos = function(id, x, y){
         if(typeof Game.playerMap!= "undefined" && typeof Game.playerMap[id] !== "undefined"){
             Game.playerMap[id].x = x;
             Game.playerMap[id].y = y;
         }
     }
+
+    //Check to see if we are standing still
     Game.standing = function(id){
         player = Game.playerMap[id];
         if((touchingFloor[id] || touchingPlayer[id]) && (player.body.blocked.down || player.body.touching.down)){
@@ -191,6 +194,7 @@
         }
     }
 
+    //update the player's movements
     Game.updatePlayerMov = function(id,direction){  
         if(Game.playerMap){
             var player = Game.playerMap[id];
