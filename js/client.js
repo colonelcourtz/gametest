@@ -64,7 +64,12 @@ Client.socket.on('allplayers',function(data){
           // Receive messages
           conn.on('data', function(data) {
             //console.log(data);
+            if(data.movement){
+            
+            Game.updatePlayerMov(data.id,data.movement)
+          }else{
             Game.updatePlayerPos(data.id,data.x, data.y)
+          }
           });         
         });
       });
@@ -96,6 +101,15 @@ Client.sendPositionPeers = function(position){
         peer.send(position);
       }
     
+    })
+}
+Client.sendMovementPeers = function(direction){
+    //Client.socket.emit('updateServerPos',position)
+    $.each(connectedPeers, function(index, peer){
+      if(peer.peer != MYID){
+        direction.id = MYID;
+        peer.send(direction);
+      }
     })
 }
 Client.sendMovement = function(direction){

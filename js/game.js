@@ -117,6 +117,7 @@
 
     //Set up any special rules for our own player
     Game.setThisPlayer = function(id){
+       
         game.camera.follow(Game.playerMap[id]);
         var t = game.add.text(30, 50, "Player: "+id,{ font: "32px Arial", fill: "#000", align: "left" })
         t.fixedToCamera = true;
@@ -139,19 +140,23 @@
     		touchingFloor[index] = game.physics.arcade.collide(thisPlayer,layer[1]);
             touchingPlayer[index] =game.physics.arcade.collide(group)
              if (cursors.left.isDown){
-                   Client.sendMovement("left")
+                   //Client.sendMovement("left")
+                   Game.sendMovementPeers("left");
                    Game.updatePlayerMov(MYID,"left")
             }else if (cursors.right.isDown){
-                   Client.sendMovement("right")
+                   //Client.sendMovement("right")
+                   Game.sendMovementPeers("right");
                    Game.updatePlayerMov(MYID,"right")
             }else{
-                Client.sendMovement("stop")
+                //Client.sendMovement("stop")
+                Game.sendMovementPeers("stop");
                 Game.updatePlayerMov(MYID,"stop")
             }
            
             
             if (cursors.up.isDown ){
-                Client.sendMovement("jump")
+                //Client.sendMovement("jump")
+                Game.sendMovementPeers("jump");
                 Game.updatePlayerMov(MYID,"jump")
             }  
     	})   
@@ -175,6 +180,14 @@
             if(typeof Game.playerMap[MYID] !== "undefined"){
                 var position = {x:Game.playerMap[MYID].x,y:Game.playerMap[MYID].y};
                 Client.sendPositionPeers(position);
+            }
+        }
+    }
+    Game.sendMovementPeers = function(movement){
+        if(MYID){
+            if(typeof Game.playerMap[MYID] !== "undefined"){
+                var direction = {id:MYID,movement:movement};
+                Client.sendMovementPeers(direction);
             }
         }
     }
