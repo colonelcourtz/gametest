@@ -7,75 +7,75 @@ Client.socket = io.connect();
 var current_players = [];
 var connectedPeers ={};
 
-////////////P2P TEST with simple-peer///////////
-
-
-/////////////////p2p tst end///////////////
-
 //////////////////////////////////////////////////
 ////                                          ////
 ////          Add players to game             ////
 ////                                          ////
 //////////////////////////////////////////////////
 
+//Send chosen room up to server -- Feedback from playerRoom
 Client.joinRoom = function(room){
     Client.socket.emit('room',room)
 }
-Client.askNewPlayer = function(name){
-    console.log("REQUESTING NEW PLAYER");
-    //create a new player request to the server
-    Client.socket.emit('newplayer',name);
-};
-
+//sends our room back to the game
 Client.socket.on('playerRoom',function(room){
     Game.startGame(room);
 })
 
+
+//Requests a new player from the server -- Feedback in thisPlayer and allPlayers
+Client.askNewPlayer = function(name){
+    Client.socket.emit('newplayer',name);
+};
+
+//when we get our own player data back -- allow us to get all other players too
 Client.socket.on('thisPlayer',function(data){
- 
+	//set up our player
     Game.setThisPlayer(data.id);
-    //start the new peer connection
+
+    //start the new peer connection - Creating ourselves as a peer
     peer = new Peer(data.id,{key: '68biajk40f3whfr'});
+
     //when peer is ready - peer server has responded - and connected, let us know
     peer.on('open', function(id) {
       console.log('My peer ID is: ' + id);
     });
 
+    //For each of our allPlayers
+	Client.socket.on('allPlayers',function(data){
+	    for(var i = 0; i < data.length; i++){
+	      	current_players.push(data[i].id)
+	      	Game.addNewPlayer(data[i].id,data[i].x,data[i].y,data[i].name);
 
-Client.socket.on('allplayers',function(data){
-    for(var i = 0; i < data.length; i++){
-      current_players.push(data[i].id)
-      Game.addNewPlayer(data[i].id,data[i].x,data[i].y,data[i].name);
-      //when we get all players attempt a peer connection
-
-      //connect to a peer based on id
-      if(data[i].id != MYID){
-        console.log("attempting connection to "+data[i].id)
-        conn = peer.connect(data[i].id);
-        conn.on('open', function(){
-          connectedPeers[conn.peer] = conn;
-        });
-      }
-      //add this connection to our list of connected peers
-      
-      //when we receive a connection from another peer - let us know about it
-      peer.on('connection', function(conn) { 
-          conn.on('open', function() {
-          // Receive messages
-          conn.on('data', function(data) {
-            //console.log(data);
-            if(data.movement){
-            
-            Game.updatePlayerMov(data.id,data.movement)
-          }else{
-            Game.updatePlayerPos(data.id,data.x, data.y)
-          }
-          });         
-        });
-      });
-    }
-});
+	      	//connect to a peer based on id
+	      	if(data[i].id != MYID){
+	        	console.log("attempting connection to "+data[i].id)
+	        	conn = peer.connect(data[i].id);
+	        	conn.on('open', function(){
+	          		connectedPeers[conn.peer] = conn;
+	        	});
+	      	}
+	     
+	     	//when we receive a connection from another peer - let us know about it
+	      	peer.on('connection', function(conn) { 
+	          	conn.on('open', function() {
+		          	// Receive messages
+		          	conn.on('data', function(data) {
+			            //console.log(data);
+			          	if(data.movement){
+			           		Game.updatePlayerMov(data.id,data.movement)
+			          	}else{
+			            	Game.updatePlayerPos(data.id,data.x, data.y)
+			          	}
+	          		});         
+	        	});
+	      	});
+	    }
+	});
 })
+
+
+//THIS DOESNT SEEM TO BE USED???
 Client.socket.on('newplayer',function(data){
     Game.addNewPlayer(data.id,data.x,data.y,data.name);
     current_players.push(data.id)

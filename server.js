@@ -45,7 +45,7 @@ io.on('connection',function(socket){
 	        };
 	        //send all players (including our new one) back to our current player
 	        socket.emit('thisPlayer',socket.player)
-	        socket.emit('allplayers',getAllPlayers(room));
+	        socket.emit('allPlayers',getAllPlayers(room));
 	        //send new player to all players
 	        socket.broadcast.in(room).emit('newplayer',socket.player);
 
