@@ -89,6 +89,7 @@
 
         //callback when hitting terrain type 622 -- JUST FOR TESTING
         map.setTileIndexCallback(622, hitTerrain, this);
+        map.setTileIndexCallback(1019, collectTime, this);
 
         //player physics group
         group = game.add.physicsGroup();
@@ -96,13 +97,30 @@
         //Create new player - me 
         Client.askNewPlayer("courtney");
          
-    }
 
+         //TESTING -- ON CLICKING A TILE WE GET PROPERTIES -- JUST FOR TESTING
+         game.input.onDown.add(getTileProperties,this)
+    }
+    //useful for finding ids and stuff -- JUST FOR TESTING
+    function getTileProperties(){
+    	var x = layer[1].getTileX(game.input.activePointer.worldX);
+    	var y = layer[1].getTileY(game.input.activePointer.worldY);
+
+    	var tile = map.getTile(x,y,layer[1]);
+    	console.log(tile);
+    }
 
     //function for when we hit terrain type 622 above -- JUST FOR TESTING
     function hitTerrain(sprite,tile){
         tile.index ++;
         // console.log(tile)
+        layer[1].dirty = true;
+        return true;
+    }
+    //function for callback when hitting the time-tokens -- JUST FOR TESTING
+    function collectTime(sprite,tile){
+        tile.index = 0;
+         console.log(tile)
         layer[1].dirty = true;
         return true;
     }
@@ -112,6 +130,15 @@
     ////           CREATING NEW PLAYERS           ////
     ////                                          ////
     //////////////////////////////////////////////////
+	//Set up any special rules for our own player
+    Game.setThisPlayer = function(id){
+        var t = game.add.text(30, 50, "Player: "+id,{ font: "32px Arial", fill: "#000", align: "left" })
+        t.fixedToCamera = true;
+        t.cameraOffset.setTo(30, 50);
+        MYID = id;
+        //send our poisition to peers when we're first created
+        Game.sendPositionPeers();
+    }
 
     //generic function for creating a player on the map (both us and all other players)
     Game.addNewPlayer = function(id,x,y,name){
@@ -126,19 +153,13 @@
         //add player label and add as a child of the player -- JUST FOR TESTING
         text = game.add.text(0,0,id);
         Game.playerMap[id].addChild(text)
+
+        //Make the camera follow our player
+        game.camera.follow(Game.playerMap[MYID]);
     };
 
 
-    //Set up any special rules for our own player
-    Game.setThisPlayer = function(id){
-        game.camera.follow(Game.playerMap[id]);
-        var t = game.add.text(30, 50, "Player: "+id,{ font: "32px Arial", fill: "#000", align: "left" })
-        t.fixedToCamera = true;
-        t.cameraOffset.setTo(30, 50);
-        MYID = id;
-        //send our poisition to peers when we're first created
-        Game.sendPositionPeers();
-    }
+    
 
     //////////////////////////////////////////////////
     ////                                          ////
@@ -149,10 +170,11 @@
         //allow players to collide with each other
         //every itteration send our movement to all other peers (sendMovementPeers), and update our own movement (updatePlayerMov)
     	touchingFloor = [];
+    	touchingCoin = [];
         touchingPlayer = [];
     	$.each(Game.playerMap,function(index, thisPlayer){
     		touchingFloor[index] = game.physics.arcade.collide(thisPlayer,layer[1]);
-            touchingPlayer[index] =game.physics.arcade.collide(group)
+            touchingPlayer[index] = game.physics.arcade.collide(group)
              if (cursors.left.isDown){
                    Game.sendMovementPeers("left");
                    Game.updatePlayerMov(MYID,"left")

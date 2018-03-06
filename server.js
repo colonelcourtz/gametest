@@ -10,30 +10,32 @@ require("jsdom/lib/old-api").env("", function(err, window) {
         console.error(err);
         return;
     }
-
     $ = require("jquery")(window);
 });
 
-
+//set up where our assets can be accessed
 app.use('/js', express.static(__dirname + '/js'));
 app.use('/assets', express.static(__dirname + '/assets'));
 app.use('/node_modules', express.static(__dirname + '/node_modules'));
 
+//set up our index
 app.get('/', function(req, res){
 	res.sendFile(__dirname + '/index.html');
 });
 
+//start the server on port 3000
 server.listen(3000,function(){ // Listens to port 3000
     console.log('Listening on '+server.address().port);
 });
 
 
 server.lastPlayerID = 1; // Keep track of the last id assigned to a new player
+
 io.on('connection',function(socket){
    socket.on('room',function(room){
-	    console.log("ROOM:"+room)
+   		//join the specified room - if no room, it creates a new one
 	    socket.join(room);
-	    socket.emit('playerRoom',room);
+	    socket.emit('playerRoom',room); //send this room to our player
 	    socket.on('newplayer',function(name){
 	        //creating a new player
 	        socket.player = {
@@ -69,16 +71,12 @@ io.on('connection',function(socket){
 });
 
 
- function getAllPlayers(room){
-
- 	var clients = io.sockets.adapter.rooms[room];
- 	
-            var players = [];
-            $.each(clients.sockets,function(index,socket){
-                    var player = io.sockets.connected[index].player;
-                    
-                    if(player) players.push(player);
-                
-            })
-            return players;
-        }
+function getAllPlayers(room){
+	var clients = io.sockets.adapter.rooms[room];
+    var players = [];
+    $.each(clients.sockets,function(index,socket){
+        var player = io.sockets.connected[index].player;
+        if(player) players.push(player);
+    })
+    return players;
+}

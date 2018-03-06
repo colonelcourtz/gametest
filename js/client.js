@@ -76,6 +76,7 @@ Client.socket.on('thisPlayer',function(data){
 
 
 //THIS DOESNT SEEM TO BE USED???
+
 Client.socket.on('newplayer',function(data){
     Game.addNewPlayer(data.id,data.x,data.y,data.name);
     current_players.push(data.id)
