@@ -19,6 +19,7 @@
         game.load.tilemap('map', '/assets/levels/intro_level.json', null, Phaser.Tilemap.TILED_JSON);
         game.load.image('tiles', '/assets/images/tilesheet.png');
         game.load.spritesheet('sprite', '/assets/images/dude.png', 30, 30);
+        game.load.spritesheet('timeToken', '/assets/images/timeToken.png', 30, 30);
         game.load.spritesheet('button', '/assets/images/button.png', 150, 30);
     };
 
@@ -106,7 +107,7 @@
     coins = game.add.group();
     coins.enableBody = true;
 
-        map.createFromObjects('objects', 781, 'sprite', 0, true, false, coins);
+        map.createFromObjects('objects', 781, 'timeToken', 0, true, false, coins);
 
          //TESTING -- ON CLICKING A TILE WE GET PROPERTIES -- JUST FOR TESTING
          game.input.onDown.add(getTileProperties,this)
