@@ -7,6 +7,8 @@
     var touchingFloor = false;
     var updateSpeed = 1000;
     var allowStart = false;
+    var time = 1000;
+    var timetext;
 
     Game.init = function(){
         game.stage.disableVisibilityChange = true;
@@ -59,6 +61,10 @@
         t.fixedToCamera = true;
         t.cameraOffset.setTo(30, 20);
 
+        timetext = game.add.text(30, 80, "Time: "+time,{ font: "32px Arial", fill: "#000", align: "left" })
+        timetext.fixedToCamera = true;
+        timetext.cameraOffset.setTo(30, 80);
+
         //remove input and button
         Game.button.pendingDestroy = true;
         Game.input.pendingDestroy = true;
@@ -96,7 +102,11 @@
         
         //Create new player - me 
         Client.askNewPlayer("courtney");
-         
+         //  Here we create our coins group
+    coins = game.add.group();
+    coins.enableBody = true;
+
+        map.createFromObjects('objects', 781, 'sprite', 0, true, false, coins);
 
          //TESTING -- ON CLICKING A TILE WE GET PROPERTIES -- JUST FOR TESTING
          game.input.onDown.add(getTileProperties,this)
@@ -118,11 +128,11 @@
         return true;
     }
     //function for callback when hitting the time-tokens -- JUST FOR TESTING
-    function collectTime(sprite,tile){
-        tile.index = 0;
-         console.log(tile)
-        layer[1].dirty = true;
-        return true;
+    function collectTime(player,coin){
+        coin.kill();
+        console.log(coin)
+        time +=10;
+        return false;
     }
  
     //////////////////////////////////////////////////
@@ -174,7 +184,8 @@
         touchingPlayer = [];
     	$.each(Game.playerMap,function(index, thisPlayer){
     		touchingFloor[index] = game.physics.arcade.collide(thisPlayer,layer[1]);
-            touchingPlayer[index] = game.physics.arcade.collide(group)
+            touchingPlayer[index] = game.physics.arcade.collide(group);
+             game.physics.arcade.overlap(thisPlayer, coins, collectTime, null, this);
              if (cursors.left.isDown){
                    Game.sendMovementPeers("left");
                    Game.updatePlayerMov(MYID,"left")
@@ -197,7 +208,9 @@
     setInterval(function(){
          //Send our position to peers every 200ms -- SHOULD REDUCE THIS IF POSSIBLE
         Game.sendPositionPeers();
-    },200)
+        time --;
+        timetext.setText("Time: " + time);
+    },1000)
 
     //////////////////////////////////////////////////
     ////                                          ////
