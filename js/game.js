@@ -19,7 +19,7 @@
     };
 
     Game.preload = function() {
-        game.load.tilemap('map', '/assets/levels/intro_level.json', null, Phaser.Tilemap.TILED_JSON);
+        game.load.tilemap('map', '/assets/levels/2player/level_01.json', null, Phaser.Tilemap.TILED_JSON);
         game.load.image('tiles', '/assets/images/tilesheet.png');
         game.load.spritesheet('sprite', '/assets/images/dude.png', 30, 30);
         game.load.spritesheet('timeToken', '/assets/images/timeToken.png', 30, 30);
@@ -141,12 +141,12 @@
     function build(sprite,tile){       
         if (spaceKey.isDown){
             tile.index = 622;
-            tile.collideDown = false;
+            tile.collideDown = true;
             tile.collideUp = true;
-            tile.collideLeft = false;
-            tile.collideRight = false;
+            tile.collideLeft = true;
+            tile.collideRight = true;
             //layer[1].dirty = true;   
-            Game.playerMap[MYID].body.velocity.y = -100;            
+            Game.playerMap[MYID].body.velocity.y = -360;            
             map.forEach(function(tile){})//FOR SOME REASON THIS RESETS THE COLLISION???
         }
         return true;
