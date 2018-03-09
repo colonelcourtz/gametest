@@ -3,6 +3,9 @@
     var cursors;
     var map;
     var MYID;
+    var MYTYPE = MYID;
+    //type 1 = digger
+    //type 2 = constructor
     var layer = [];
     var touchingFloor = false;
     var updateSpeed = 1000;
@@ -73,6 +76,7 @@
         //start physics and enable keyboard input
         game.physics.startSystem(Phaser.Physics.ARCADE);
         cursors = game.input.keyboard.createCursorKeys();
+        spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
         //styling
         game.stage.backgroundColor = '#787878';
@@ -83,19 +87,18 @@
         //create a tilemap
         map = game.add.tilemap('map');
         map.addTilesetImage('tiles', 'tiles');
-        map.setCollisionBetween(0, 12000);
+        map.setCollisionBetween(0, 1023);
 
-        //create a new layer for each of the map layers -- NOT 100% SURE WHAT WE'RE DOING HERE -- CHECK IT OUT
-        for(var i = 0; i < map.layers.length; i++) {
-            layer[0] = map.createLayer(i);
-        }
         //create the background and main layers
         layer[1] = map.createLayer('MyTerrain');
         layer[2] = map.createLayer('Background')
         layer[1].resizeWorld();
+        //layer[1].debug = true;
 
         //callback when hitting terrain type 622 -- JUST FOR TESTING
-        map.setTileIndexCallback(622, hitTerrain, this);
+        
+        
+
         map.setTileIndexCallback(1019, collectTime, this);
 
         //player physics group
@@ -109,23 +112,43 @@
 
         map.createFromObjects('objects', 781, 'timeToken', 0, true, false, coins);
 
-         //TESTING -- ON CLICKING A TILE WE GET PROPERTIES -- JUST FOR TESTING
-         game.input.onDown.add(getTileProperties,this)
+        //TESTING -- ON CLICKING A TILE WE GET PROPERTIES -- JUST FOR TESTING
+        game.input.onDown.add(getTileProperties,this)
     }
     //useful for finding ids and stuff -- JUST FOR TESTING
     function getTileProperties(){
     	var x = layer[1].getTileX(game.input.activePointer.worldX);
     	var y = layer[1].getTileY(game.input.activePointer.worldY);
-
     	var tile = map.getTile(x,y,layer[1]);
     	console.log(tile);
     }
 
     //function for when we hit terrain type 622 above -- JUST FOR TESTING
-    function hitTerrain(sprite,tile){
-        tile.index ++;
-        // console.log(tile)
-        layer[1].dirty = true;
+    function dig(sprite,tile){       
+        if (spaceKey.isDown){
+            tile.index = -1;
+            tile.collideDown = false;
+            tile.collideUp = false;
+            tile.collideLeft = false;
+            tile.collideRight = false;
+            //layer[1].dirty = true;   
+            Game.playerMap[MYID].body.velocity.y = -100;            
+            map.forEach(function(tile){})//FOR SOME REASON THIS RESETS THE COLLISION???
+        }
+        return true;
+    }
+
+    function build(sprite,tile){       
+        if (spaceKey.isDown){
+            tile.index = 622;
+            tile.collideDown = false;
+            tile.collideUp = true;
+            tile.collideLeft = false;
+            tile.collideRight = false;
+            //layer[1].dirty = true;   
+            Game.playerMap[MYID].body.velocity.y = -100;            
+            map.forEach(function(tile){})//FOR SOME REASON THIS RESETS THE COLLISION???
+        }
         return true;
     }
     //function for callback when hitting the time-tokens -- JUST FOR TESTING
@@ -149,6 +172,13 @@
         MYID = id;
         //send our poisition to peers when we're first created
         Game.sendPositionPeers();
+
+        //set up our player's ability
+        if(MYID == 1){
+            map.setTileIndexCallback(622, dig, this);
+        }else if(MYID == 2){
+            map.setTileIndexCallback(-1, build, this);
+        }
     }
 
     //generic function for creating a player on the map (both us and all other players)
