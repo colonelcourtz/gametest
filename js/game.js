@@ -21,8 +21,10 @@
     Game.preload = function() {
         game.load.tilemap('map', '/assets/levels/2player/level_01.json', null, Phaser.Tilemap.TILED_JSON);
         game.load.image('tiles', '/assets/images/tilesheet.png');
+        game.load.image('bg_space', '/assets/images/bg_space.jpg');
         game.load.spritesheet('sprite', '/assets/images/dude.png', 30, 30);
         game.load.spritesheet('timeToken', '/assets/images/timeToken.png', 30, 30);
+        game.load.spritesheet('block', '/assets/images/block.png', 30, 30);
         game.load.spritesheet('button', '/assets/images/button.png', 150, 30);
     };
 
@@ -40,7 +42,7 @@
             width: 135,
             padding: 8,
             borderWidth: 1,
-            borderColor: '#000',
+            borderColor: '#fff',
             borderRadius: 6
         }
         //add input field for selecting roomname
@@ -61,11 +63,12 @@
         console.log("YOU ARE IN ROOM:"+room)
 
         //Text for user        
-        var t = game.add.text(30, 20, "In room: "+room,{ font: "32px Arial", fill: "#000", align: "left" })
+        var t = game.add.text(30, 20, "In room: "+room,{ font: "32px Arial", fill: "#fff", align: "left" })
         t.fixedToCamera = true;
         t.cameraOffset.setTo(30, 20);
 
-        timetext = game.add.text(30, 80, "Time: "+time,{ font: "32px Arial", fill: "#000", align: "left" })
+
+        timetext = game.add.text(30, 80, "Time: "+time,{ font: "32px Arial", fill: "#fff", align: "left" })
         timetext.fixedToCamera = true;
         timetext.cameraOffset.setTo(30, 80);
 
@@ -79,11 +82,14 @@
         spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
         //styling
-        game.stage.backgroundColor = '#787878';
-
+        game.stage.backgroundColor = '#b5eeff';
+        
+        bg = game.add.tileSprite(0, 0, 1092, 1080, 'bg_space');
+        bg.fixedToCamera = true
         //create the playermap object
         Game.playerMap = {};
-
+        //create the blockmap object
+        Game.blockMap = {};
         //create a tilemap
         map = game.add.tilemap('map');
         map.addTilesetImage('tiles', 'tiles');
@@ -113,44 +119,51 @@
         map.createFromObjects('objects', 781, 'timeToken', 0, true, false, coins);
 
         //TESTING -- ON CLICKING A TILE WE GET PROPERTIES -- JUST FOR TESTING
-        game.input.onDown.add(getTileProperties,this)
+        //game.input.onDown.add(getTileProperties,this)
+        // click mouse creates block at mouse position
+        
     }
     //useful for finding ids and stuff -- JUST FOR TESTING
     function getTileProperties(){
     	var x = layer[1].getTileX(game.input.activePointer.worldX);
     	var y = layer[1].getTileY(game.input.activePointer.worldY);
     	var tile = map.getTile(x,y,layer[1]);
+
     	console.log(tile);
     }
+    function createBlock(){
+    		var id = Object.keys(Game.blockMap).length++;
+    		Game.blockMap[id] = game.add.sprite(game.input.activePointer.worldX,game.input.activePointer.worldY,'block',id);
+        	game.physics.arcade.enable(Game.blockMap[id]);
+        	group.add(Game.blockMap[id]);
+        	Game.blockMap[id].body.gravity.y = 800;
+        	Game.blockMap[id].body.mass = 1;
+        	
+        	Game.blockMap[id].body.collideWorldBounds = true;
 
-    //function for when we hit terrain type 622 above -- JUST FOR TESTING
-    function dig(sprite,tile){       
-        if (spaceKey.isDown){
-            tile.index = -1;
-            tile.collideDown = false;
+    }
+
+    
+
+deleteBlock = function(pointer){    
+
+    tile = map.getTileWorldXY(pointer.worldX, pointer.worldY)
+    //Tiles world coordinates:
+    if(tile){
+        tile.index = -1;
+        tile.collideDown = false;
             tile.collideUp = false;
             tile.collideLeft = false;
             tile.collideRight = false;
-            //layer[1].dirty = true;   
-            Game.playerMap[MYID].body.velocity.y = -100;            
-            map.forEach(function(tile){})//FOR SOME REASON THIS RESETS THE COLLISION???
-        }
-        return true;
+        map.forEach(function(tile){})
     }
 
-    function build(sprite,tile){       
-        if (spaceKey.isDown){
-            tile.index = 622;
-            tile.collideDown = true;
-            tile.collideUp = true;
-            tile.collideLeft = true;
-            tile.collideRight = true;
-            //layer[1].dirty = true;   
-            Game.playerMap[MYID].body.velocity.y = -360;            
-            map.forEach(function(tile){})//FOR SOME REASON THIS RESETS THE COLLISION???
-        }
-        return true;
-    }
+
+   
+   //click at 100, 200 world give you 1, 3
+}
+
+
     //function for callback when hitting the time-tokens -- JUST FOR TESTING
     function collectTime(player,coin){
         coin.kill();
@@ -166,19 +179,20 @@
     //////////////////////////////////////////////////
 	//Set up any special rules for our own player
     Game.setThisPlayer = function(id){
-        var t = game.add.text(30, 50, "Player: "+id,{ font: "32px Arial", fill: "#000", align: "left" })
+        var t = game.add.text(30, 50, "Player: "+id,{ font: "32px Arial", fill: "#fff", align: "left" })
         t.fixedToCamera = true;
         t.cameraOffset.setTo(30, 50);
         MYID = id;
         //send our poisition to peers when we're first created
         Game.sendPositionPeers();
-
-        //set up our player's ability
-        if(MYID == 1){
-            map.setTileIndexCallback(622, dig, this);
-        }else if(MYID == 2){
-            map.setTileIndexCallback(-1, build, this);
+        //set up player abilities
+    if(MYID == 1){
+            game.input.onDown.add(createBlock);
+        }else{
+            game.input.onDown.add(deleteBlock);
         }
+        
+        
     }
 
     //generic function for creating a player on the map (both us and all other players)
@@ -208,6 +222,11 @@
     ////                                          ////
     //////////////////////////////////////////////////
     Game.update = function(){
+        
+        
+        $.each(Game.playerMap,function(index, box){
+            box.body.velocity.x = 0;    
+        })
         //allow players to collide with each other
         //every itteration send our movement to all other peers (sendMovementPeers), and update our own movement (updatePlayerMov)
     	touchingFloor = [];
@@ -233,6 +252,14 @@
                 Game.updatePlayerMov(MYID,"jump")
             }  
     	})   
+       
+       $.each(Game.blockMap,function(index, block){
+
+       		game.physics.arcade.collide(block,layer[1]);
+       		game.physics.arcade.collide(block,Game.playerMap);
+            game.physics.arcade.collide(Game.blockMap);
+
+       })
        
         
     }
