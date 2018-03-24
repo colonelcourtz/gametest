@@ -62,11 +62,21 @@ Client.socket.on('thisPlayer',function(data){
 		          	// Receive messages
 		          	conn.on('data', function(data) {
 			            //console.log(data);
-			          	if(data.movement){
-			           		Game.updatePlayerMov(data.id,data.movement)
-			          	}else{
-			            	Game.updatePlayerPos(data.id,data.x, data.y)
-			          	}
+                        switch(data.type){
+                            case "movement":
+                                Game.updatePlayerMov(data.id,data.movement)
+                            break;
+                            case "position":
+                                Game.updatePlayerPos(data.id,data.x, data.y)
+                            break;
+                            case "createBlock":
+                                Game.createBlock("","",data.x,data.y,false);
+                            break
+                            case "deleteBlock":
+                                Game.deleteBlock("","",data.x,data.y,false);
+                            break
+                            default:break;
+                        }
 	          		});         
 	        	});
 	      	});
@@ -124,6 +134,23 @@ Client.socket.on('updatePlayerPos',function(data){
 Client.socket.on('updatePlayerMov',function(data){
     //Game.updatePlayerMov(data.id,data.direction)
 })
+
+
+//////////////////////////////////////////////////
+////                                          ////
+////             Managing blocks              ////
+////                                          ////
+//////////////////////////////////////////////////
+
+Client.sendBlockPeers = function(position){
+    //Client.socket.emit('updateServerPos',position)
+    $.each(connectedPeers, function(index, peer){
+      if(peer.peer != MYID){
+        position.id = MYID;
+        peer.send(position);
+      }
+    })
+}
 
 
 //////////////////////////////////////////////////

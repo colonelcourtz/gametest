@@ -54,7 +54,7 @@
             Client.joinRoom(Game.input.value);
         }
 		//SETS ROOM TO DEFAULT -- REMOVE LINE TO CHOOSE ROOM
-    	 Client.joinRoom("default");
+    	 //Client.joinRoom("default");
     };
 
 
@@ -108,13 +108,16 @@
         map.setTileIndexCallback(1019, collectTime, this);
 
         //player physics group
-        group = game.add.physicsGroup();
+        playergroup = game.add.physicsGroup();
+
+        //block physics group
+        blockgroup = game.add.physicsGroup();
         
         //Create new player - me 
         Client.askNewPlayer("courtney");
          //  Here we create our coins group
-    coins = game.add.group();
-    coins.enableBody = true;
+        coins = game.add.group();
+        coins.enableBody = true;
 
         map.createFromObjects('objects', 781, 'timeToken', 0, true, false, coins);
 
@@ -131,31 +134,42 @@
 
     	console.log(tile);
     }
-    function createBlock(){
-    		var id = Object.keys(Game.blockMap).length++;
-    		Game.blockMap[id] = game.add.sprite(game.input.activePointer.worldX,game.input.activePointer.worldY,'block',id);
-        	game.physics.arcade.enable(Game.blockMap[id]);
-        	group.add(Game.blockMap[id]);
-        	Game.blockMap[id].body.gravity.y = 800;
-        	Game.blockMap[id].body.mass = 1;
-        	
-        	Game.blockMap[id].body.collideWorldBounds = true;
 
+    //creates a block either based on the mouseclick position or based on parameters passed
+    Game.createBlock = function(pointer,Z,x,y,sendToPeers){
+		var id = Object.keys(Game.blockMap).length++;
+        var blockX = x || game.input.activePointer.worldX;
+        var blockY = y || game.input.activePointer.worldY;
+		Game.blockMap[id] = game.add.sprite(blockX,blockY,'block',id);
+    	game.physics.arcade.enable(Game.blockMap[id]);
+    	blockgroup.add(Game.blockMap[id]);
+    	Game.blockMap[id].body.gravity.y = 800;
+    	Game.blockMap[id].body.mass = 1;
+    	Game.blockMap[id].body.collideWorldBounds = true;
+        
+        //send new block to other players
+        if(sendToPeers){
+            Game.createPeerBlock(blockX,blockY);
+        }
     }
 
     
 
-deleteBlock = function(pointer){    
-
-    tile = map.getTileWorldXY(pointer.worldX, pointer.worldY)
+Game.deleteBlock = function(pointer,Z,x,y,sendToPeers){
+    var x = x || pointer.worldX
+    var y = y || pointer.worldY
+    tile = map.getTileWorldXY(x, y)
     //Tiles world coordinates:
     if(tile){
         tile.index = -1;
         tile.collideDown = false;
-            tile.collideUp = false;
-            tile.collideLeft = false;
-            tile.collideRight = false;
+        tile.collideUp = false;
+        tile.collideLeft = false;
+        tile.collideRight = false;
         map.forEach(function(tile){})
+    }
+    if(sendToPeers){
+           Game.deletePeerBlock(x,y);
     }
 
 
@@ -186,21 +200,23 @@ deleteBlock = function(pointer){
         //send our poisition to peers when we're first created
         Game.sendPositionPeers();
         //set up player abilities
-    if(MYID == 1){
-            game.input.onDown.add(createBlock);
+        if(MYID == 1){
+            game.input.onDown.add(Game.createBlock,this,0,"","",true);
         }else{
-            game.input.onDown.add(deleteBlock);
+            game.input.onDown.add(Game.deleteBlock,this,0,"","",true);
         }
         
         
     }
 
     //generic function for creating a player on the map (both us and all other players)
-    Game.addNewPlayer = function(id,x,y,name){
+    Game.addNewPlayer = function(id,x,y,name,name){
+
         //add sprtie
         Game.playerMap[id] = game.add.sprite(x,y,'sprite',id);
+        Game.playerMap[id].name = "steve";
         game.physics.arcade.enable(Game.playerMap[id]);
-        group.add(Game.playerMap[id]);
+        playergroup.add(Game.playerMap[id]);
         
         Game.playerMap[id].body.gravity.y = 800;
         Game.playerMap[id].body.collideWorldBounds = true;
@@ -211,6 +227,7 @@ deleteBlock = function(pointer){
 
         //Make the camera follow our player
         game.camera.follow(Game.playerMap[MYID]);
+        console.log(Game.playerMap[id].name)
     };
 
 
@@ -232,9 +249,13 @@ deleteBlock = function(pointer){
     	touchingFloor = [];
     	touchingCoin = [];
         touchingPlayer = [];
+        touchingBlocks = [];
     	$.each(Game.playerMap,function(index, thisPlayer){
+            //touching the floor check
     		touchingFloor[index] = game.physics.arcade.collide(thisPlayer,layer[1]);
-            touchingPlayer[index] = game.physics.arcade.collide(group);
+            //Touching another player check
+            touchingPlayer[index] = game.physics.arcade.collide(playergroup);
+            touchingBlocks[index] = game.physics.arcade.collide(playergroup,blockgroup);
              game.physics.arcade.overlap(thisPlayer, coins, collectTime, null, this);
              if (cursors.left.isDown){
                    Game.sendMovementPeers("left");
@@ -254,15 +275,25 @@ deleteBlock = function(pointer){
     	})   
        
        $.each(Game.blockMap,function(index, block){
+       		touchingTerrain = game.physics.arcade.collide(block,layer[1]);
+            touchingBlocks = game.physics.arcade.collide(blockgroup,blockgroup,function(obj1,obj2){
+                obj1.body.immovable = true;
+                obj1.body.gravity.y = 0;
+                obj1.body.velocity.y = 0;
+                obj1.body.velocity.x = 0;
 
-       		game.physics.arcade.collide(block,layer[1]);
-       		game.physics.arcade.collide(block,Game.playerMap);
-            game.physics.arcade.collide(Game.blockMap);
-
+            });
+            touchingPlayer = game.physics.arcade.collide(blockgroup,playergroup,function(obj1,obj2){
+                 obj1.body.immovable = true;
+                 obj1.body.gravity.y = 0;
+                 obj1.body.velocity.y = 0;
+                obj1.body.velocity.x = 0;
+            }); 
        })
        
         
     }
+    
     setInterval(function(){
          //Send our position to peers every 200ms -- SHOULD REDUCE THIS IF POSSIBLE
         Game.sendPositionPeers();
@@ -283,7 +314,7 @@ deleteBlock = function(pointer){
     Game.sendPositionPeers = function(){
         if(MYID){
             if(typeof Game.playerMap[MYID] !== "undefined"){
-                var position = {x:Game.playerMap[MYID].x,y:Game.playerMap[MYID].y};
+                var position = {type:"position",x:Game.playerMap[MYID].x,y:Game.playerMap[MYID].y};
                 Client.sendPositionPeers(position);
             }
         }
@@ -294,8 +325,25 @@ deleteBlock = function(pointer){
     Game.sendMovementPeers = function(movement){
         if(MYID){
             if(typeof Game.playerMap[MYID] !== "undefined"){
-                var direction = {id:MYID,movement:movement};
+                var direction = {type:"movement",id:MYID,movement:movement};
                 Client.sendMovementPeers(direction);
+            }
+        }
+    }
+
+    Game.createPeerBlock = function(x,y){
+        if(MYID){
+            if(typeof Game.playerMap[MYID] !== "undefined"){
+                var position = {type:"createBlock",id:MYID,x:x,y:y};
+                Client.sendBlockPeers(position);
+            }
+        }
+    }
+    Game.deletePeerBlock = function(x,y){
+        if(MYID){
+            if(typeof Game.playerMap[MYID] !== "undefined"){
+                var position = {type:"deleteBlock",id:MYID,x:x,y:y};
+                Client.sendBlockPeers(position);
             }
         }
     }
@@ -337,7 +385,7 @@ deleteBlock = function(pointer){
     //Check to see if we are standing still
     Game.standing = function(id){
         player = Game.playerMap[id];
-        if((touchingFloor[id] || touchingPlayer[id]) && (player.body.blocked.down || player.body.touching.down)){
+        if((touchingFloor[id] || touchingPlayer[id] || touchingBlocks[id]) && (player.body.blocked.down || player.body.touching.down)){
             return true;
         }
     }

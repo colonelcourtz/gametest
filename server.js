@@ -29,7 +29,9 @@ server.listen(3000,function(){ // Listens to port 3000
 });
 
 
-server.lastPlayerID = 1; // Keep track of the last id assigned to a new player
+
+
+
 
 io.on('connection',function(socket){
    socket.on('room',function(room){
@@ -37,30 +39,21 @@ io.on('connection',function(socket){
 	    socket.join(room);
 	    socket.emit('playerRoom',room); //send this room to our player
 	    socket.on('newplayer',function(name){
+	    	id = io.sockets.adapter.rooms[room].length;
 	        //creating a new player
 	        socket.player = {
 	            name: name,
 	            room:room,
-	            x: server.lastPlayerID*30,
+	            x: id*30,
 	            y: 0,
-	            id: server.lastPlayerID++,
+	            id: id,
 	        };
 	        //send all players (including our new one) back to our current player
 	        socket.emit('thisPlayer',socket.player)
 	        socket.emit('allPlayers',getAllPlayers(room));
 	        //send new player to all players
+	        
 	        socket.broadcast.in(room).emit('newplayer',socket.player);
-
-	        socket.on('updateServerPos',function(position){
-	        	socket.player.x = position.x;
-	        	socket.player.y = position.y;
-	        	//socket.broadcast.in(room).emit('updatePlayerPos',socket.player)
-	        })
-
-	        socket.on('sendMovementToServer',function(direction){
-	            socket.player.direction = direction;
-	            //socket.broadcast.in(room).emit('updatePlayerMov',socket.player);
-	        });
 	        
 	        socket.on('disconnect',function(){
 	            io.emit('remove',socket.player.id);
